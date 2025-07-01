@@ -8,7 +8,7 @@ import { useState, useEffect, useRef, Suspense } from "react"
 import { signIn, signOut, useSession } from 'next-auth/react'
 import Image from 'next/image'
 import  AuthButton  from "@/components/auth/authBottons";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import ClientFormattedDate from "@/components/ClientFormattedDate";
 import SearchBar from "@/components/SearchBar";
@@ -158,17 +158,14 @@ export default function IntegratedBlogApp() {
   const debounceTimeout = useRef();
   const didInit = useRef(false); // <-- Only set from URL on first mount
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { data: session } = useSession();
 
   useEffect(() => {
     if (!didInit.current) {
-      const urlSearch = searchParams.get("search") || "";
-      setSearchTerm(urlSearch);
-      setDebouncedSearch(urlSearch);
+      // Search param logic now handled in SearchBar
       didInit.current = true;
     }
-  }, [searchParams]);
+  }, []);
 
   // Debounce search input for instant filtering
   useEffect(() => {
