@@ -93,7 +93,8 @@ Then visit: `http://localhost:3000`
 
 ##  Screenshots
 
-*Add screenshots here if available.*
+![image](https://github.com/user-attachments/assets/41a6e612-1c3e-410b-a443-3e5daa31651a)
+
 
 ---
 
