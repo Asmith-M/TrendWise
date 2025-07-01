@@ -1,7 +1,11 @@
+// jsconfig.json
 {
   "compilerOptions": {
+    "baseUrl": ".", // This sets the base directory for resolving modules
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"] // This maps @/ to the project root
     }
-  }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+  "exclude": ["node_modules"]
 }
