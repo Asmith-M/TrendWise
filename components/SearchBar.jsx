@@ -1,0 +1,53 @@
+"use client"
+
+import { useState, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Search as SearchIcon } from "lucide-react";
+
+export default function SearchBar({ onSearch }) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const debounceTimeout = useRef();
+  const didInit = useRef(false);
+
+  useEffect(() => {
+    if (!didInit.current) {
+      const urlSearch = searchParams.get("search") || "";
+      setSearchTerm(urlSearch);
+      didInit.current = true;
+    }
+  }, [searchParams]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const params = new URLSearchParams(window.location.search);
+    if (searchTerm) {
+      params.set("search", searchTerm);
+    } else {
+      params.delete("search");
+    }
+    router.replace(`?${params.toString()}`);
+    if (onSearch) onSearch(searchTerm);
+  };
+
+  return (
+    <form onSubmit={handleSearchSubmit} className="inline">
+      <div className="relative">
+        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search articles..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="pl-9 pr-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          autoComplete="off"
+        />
+      </div>
+    </form>
+  );
+}

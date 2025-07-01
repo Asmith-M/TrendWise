@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, Clock, Plus, MessageCircle, Tag, Heart, Share2, ArrowLeft, Home, Search as SearchIcon } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { signIn, signOut, useSession } from 'next-auth/react'
 import Image from 'next/image'
 import  AuthButton  from "@/components/auth/authBottons";
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from "next/link";
 import ClientFormattedDate from "@/components/ClientFormattedDate";
+import SearchBar from "@/components/SearchBar";
 
 // CommentCount component to fetch and display the number of comments for each article
 function CommentCount({ articleId }) {
@@ -271,19 +272,9 @@ export default function IntegratedBlogApp() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">TrendWise</h1>
             </div>
             <div className="flex items-center space-x-3">
-              <form onSubmit={handleSearchSubmit} className="inline">
-                <div className="relative">
-                  <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search articles..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    className="pl-9 pr-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    autoComplete="off"
-                  />
-                </div>
-              </form>
+              <Suspense fallback={<div className="w-40 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />}> 
+                <SearchBar />
+              </Suspense>
               <ThemeToggle />
               <AuthButton />
             </div>
