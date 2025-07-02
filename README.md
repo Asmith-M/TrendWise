@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# TrendWise – AI-Powered SEO Blog Generator
 
-## Getting Started
+> **An AI-powered SEO blog generator that delivers trending content in seconds.**
 
-First, run the development server:
+---
+
+##  Project Overview
+
+TrendWise is a full-stack web application that uses AI to generate SEO-optimized blog articles instantly. Designed with modern UX and mobile responsiveness, it allows users to log in with Google, generate articles on demand, view them publicly, comment, and manage content via an admin dashboard.
+
+---
+
+##  Project Motivation
+
+This project was built as part of a full-stack learning sprint to master:
+
+* Next.js 14 App Router
+* Authentication with NextAuth.js
+* MongoDB integration
+* AI-powered content generation
+* SEO enhancements
+* Scalable and responsive UI/UX
+
+---
+
+##  Core Features
+
+*  AI-powered article generation via OpenRouter
+*  Google OAuth authentication (NextAuth.js)
+*  MongoDB for article and comment persistence
+*  Public comment system (auth required)
+*  Admin panel (protected route with username/password)
+*  Search functionality
+*  Responsive UI built with Tailwind CSS
+*  SEO enhancements (sitemap + robots.txt)
+
+---
+
+##  Tech Stack & Tools
+
+| Category   | Stack/Tool                          |
+| ---------- | ----------------------------------- |
+| Frontend   | Next.js 14 App Router, Tailwind CSS |
+| Backend    | Next.js API Routes                  |
+| Database   | MongoDB + Mongoose                  |
+| Auth       | NextAuth.js (Google Login)          |
+| AI Model   | OpenRouter (free-tier models)       |
+| UI Tool    | V0.dev (UI prototyping)             |
+| Deployment | Vercel                              |
+
+---
+
+##  Getting Started (Local Setup)
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/Asmith-M/trendwise.git
+cd trendwise
+```
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure Environment Variables
+
+Create a `.env.local` file and add the following:
+
+```env
+MONGODB_URI=your-mongodb-uri
+OPENROUTER_API_KEY=your-openrouter-key
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+NEXTAUTH_SECRET=your-nextauth-secret
+NEXTAUTH_URL=http://localhost:3000
+ADMIN_EMAIL=your-admin@email.com
+ADMIN_USERNAME=youradmin
+ADMIN_PASSWORD=yourpassword
+```
+
+### 4. Run Locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then visit: `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+##  Screenshots
 
-## Learn More
+![image](https://github.com/user-attachments/assets/41a6e612-1c3e-410b-a443-3e5daa31651a)
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+##  Known Issues / Limitations
 
-## Deploy on Vercel
+* 🔍 The search feature is not working properly and can be improved.
+* 🧠 Uses OpenRouter for AI content generation due to OpenAI quota limits — easily swappable.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+##  Future Improvements
+
+* Better search indexing and filters
+* Markdown editor for manual content
+* Image support for blog posts
+* Role-based admin controls
+
+---
+
+##  Deployment
+
+Live: [https://trend-wise-nu.vercel.app](https://trend-wise-nu.vercel.app)
+
+Environment Variables were set on Vercel Dashboard under **Project Settings → Environment Variables**.
+
+---
+
+##  License
+
+This project is open-source and free to use.
