@@ -19,21 +19,50 @@ export default function SearchBar({ onSearch }) {
     }
   }, [searchParams]);
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
+  const updateURL = (value) => {
     const params = new URLSearchParams(window.location.search);
-    if (searchTerm) {
-      params.set("search", searchTerm);
+    if (value) {
+      params.set("search", value);
     } else {
       params.delete("search");
     }
     router.replace(`?${params.toString()}`);
-    if (onSearch) onSearch(searchTerm);
+    if (onSearch) onSearch(value);
   };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    // Clear existing timeout
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    
+    // Set new timeout for debounced URL update
+    debounceTimeout.current = setTimeout(() => {
+      updateURL(value);
+    }, 300); // Wait 300ms after user stops typing
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    // Clear any pending debounced update
+    if (debounceTimeout.current) {
+      clearTimeout(debounceTimeout.current);
+    }
+    // Immediately update URL on submit
+    updateURL(searchTerm);
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, []);
 
   return (
     <form onSubmit={handleSearchSubmit} className="inline">

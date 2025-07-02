@@ -121,7 +121,7 @@ function AdminDashboard() {
   async function handleDelete(id) {
     if (!confirm("Delete this article?")) return;
     try {
-      const res = await fetch(`/api/article?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/article/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();
       setArticles(articles.filter(a => a._id !== id));
     } catch {
