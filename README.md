@@ -45,7 +45,6 @@ This project was built as part of a full-stack learning sprint to master:
 | Database   | MongoDB + Mongoose                  |
 | Auth       | NextAuth.js (Google Login)          |
 | AI Model   | OpenRouter (free-tier models)       |
-| UI Tool    | V0.dev (UI prototyping)             |
 | Deployment | Vercel                              |
 
 ---
