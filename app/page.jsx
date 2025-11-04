@@ -1,40 +1,13 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Calendar, Clock, Plus, MessageCircle, Tag, Heart, Share2, ArrowLeft, Home, Search as SearchIcon } from "lucide-react"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { useState, useEffect, useRef, Suspense } from "react"
-import { signIn, signOut, useSession } from 'next-auth/react'
-import Image from 'next/image'
-import  AuthButton  from "@/components/auth/authBottons";
-import { useRouter } from 'next/navigation';
-import Link from "next/link";
-import ClientFormattedDate from "@/components/ClientFormattedDate";
-import SearchBar from "@/components/SearchBar";
-
-// CommentCount component to fetch and display the number of comments for each article
-function CommentCount({ articleId }) {
-  if (!isValidObjectId(articleId)) return null;
-
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!articleId) return;
-    fetch(`/api/comment?articleId=${articleId}`)
-      .then(res => res.json())
-      .then(data => setCount(Array.isArray(data) ? data.length : 0))
-      .catch(() => setCount(0));
-  }, [articleId]);
-  return (
-    <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-      <MessageCircle className="w-4 h-4" /> {count}
-    </span>
-  );
-}
-
-function isValidObjectId(id) {
-  return typeof id === 'string' && id.length === 24 && /^[a-fA-F0-9]+$/.test(id);
-}
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useState, useEffect, Suspense } from "react";
+import { useSession } from "next-auth/react";
+import AuthButton from "@/components/auth/authBottons";
+import Navigation from "@/components/Navigation";
+import ArticleCard from "@/components/ArticleCard";
+import { motion } from "framer-motion";
 
 export default function HomePage() {
   const [blogPosts, setBlogPosts] = useState([]);
@@ -44,8 +17,8 @@ export default function HomePage() {
   const [error, setError] = useState(null);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ articles: 0, readers: "10K+", topics: 15 });
   const { data: session } = useSession();
-
 
   // Fetch articles from DB
   const fetchArticles = async () => {
@@ -54,7 +27,6 @@ export default function HomePage() {
       const res = await fetch("/api/article");
       if (res.ok) {
         const data = await res.json();
-        // Map DB articles to blogPosts format
         const dbPosts = Array.isArray(data)
           ? data.map((a) => ({
               id: a._id,
@@ -65,9 +37,11 @@ export default function HomePage() {
               readTime: a.readTime || "5 min read",
               category: a.category || "General",
               content: a.content || "",
+              image: a.image || null,
             }))
           : [];
         setBlogPosts(dbPosts);
+        setStats((prev) => ({ ...prev, articles: dbPosts.length }));
       }
     } catch (e) {
       setBlogPosts([]);
@@ -80,7 +54,7 @@ export default function HomePage() {
     fetchArticles();
   }, [session]);
 
-  // Generate article: POST to API, then re-fetch
+  // Generate article
   const handleGenerateArticle = async (e) => {
     e.preventDefault();
     if (!topic.trim()) {
@@ -98,7 +72,7 @@ export default function HomePage() {
       if (!res.ok) throw new Error("Failed to generate article");
       setTopic("");
       setShowForm(false);
-      await fetchArticles(); // Re-fetch from DB
+      await fetchArticles();
     } catch (err) {
       setError(err.message || "Something went wrong. Please check your API setup.");
     } finally {
@@ -106,165 +80,303 @@ export default function HomePage() {
     }
   };
 
-  // Filtered blog posts based on debounced search term
-  const filteredBlogPosts = blogPosts.filter((post) =>
-    post.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-    post.excerpt.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-    post.category.toLowerCase().includes(debouncedSearch.toLowerCase())
+  // Filtered blog posts
+  const filteredBlogPosts = blogPosts.filter(
+    (post) =>
+      post.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      post.excerpt.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      post.category.toLowerCase().includes(debouncedSearch.toLowerCase())
   );
+
+  // Organize posts by size for masonry layout
+  const featuredPost = filteredBlogPosts[0];
+  const mediumPosts = filteredBlogPosts.slice(1, 4);
+  const smallPosts = filteredBlogPosts.slice(4);
 
   if (!session) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">Welcome to TrendWise</h1>
-        <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">Sign in to generate, view, and comment on AI-powered trending blogs.</p>
-        <AuthButton />
+      <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-slate-50 dark:bg-slate-900">
+        {/* Animated Background */}
+        <div className="absolute inset-0 gradient-mesh" />
+        
+        {/* Floating Orbs */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute top-20 left-20 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute bottom-20 right-20 w-96 h-96 bg-violet-500/20 rounded-full blur-3xl"
+        />
+        
+        {/* Content */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="relative z-10 text-center px-4"
+        >
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-8"
+          >
+            <h1 className="text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent leading-tight">
+              Welcome to TrendWise
+            </h1>
+            <p className="text-xl text-slate-600 dark:text-slate-300 mb-4 max-w-2xl mx-auto leading-relaxed">
+              Discover AI-powered insights and trending articles
+            </p>
+            <p className="text-base text-slate-500 dark:text-slate-400 max-w-xl mx-auto">
+              Sign in to generate, view, and comment on cutting-edge content
+            </p>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="flex flex-col items-center gap-6"
+          >
+            <AuthButton />
+            
+            {/* Feature Pills */}
+            <div className="flex flex-wrap gap-3 justify-center mt-4">
+              <span className="px-4 py-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-full text-sm font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                ✨ AI-Powered
+              </span>
+              <span className="px-4 py-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-full text-sm font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                🚀 Real-time Updates
+              </span>
+              <span className="px-4 py-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-full text-sm font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                💡 Trending Topics
+              </span>
+            </div>
+          </motion.div>
+        </motion.div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      {/* Fixed Header */}
-      <header className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">TrendWise</h1>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Suspense fallback={<div className="w-40 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />}> 
-                <SearchBar onSearch={setDebouncedSearch} />
-              </Suspense>
-              <ThemeToggle />
-              <AuthButton />
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Navigation */}
+      <Navigation onSearch={setDebouncedSearch} transparent />
+
       {/* Main Content */}
-      <main className="pt-20 pb-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Hero Section */}
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Latest Insights & Trends</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Stay ahead of the curve with our curated collection of articles on technology, design, and innovation.
-            </p>
-            {/* Generate Article Button / Form */}
-            <div className="mt-6">
-              {!showForm ? (
-                <Button
-                  onClick={() => setShowForm(true)}
-                  className="gap-2"
+      <main className="pt-16">
+        {/* Hero Section */}
+        <section className="relative overflow-hidden gradient-mesh">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              {/* Left: Text Content */}
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.6 }}
+              >
+                <motion.h1
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-6 leading-tight"
                 >
-                  <Plus size={18} />
-                  Generate New Article
-                </Button>
-              ) : (
-                <form onSubmit={handleGenerateArticle} className="mt-4 max-w-md mx-auto">
-                  <div className="space-y-4">
-                    <div>
-                      <label htmlFor="topic" className="sr-only">Article Topic</label>
+                  Latest Insights &{" "}
+                  <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                    Trends
+                  </span>
+                </motion.h1>
+                
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="text-xl text-slate-600 dark:text-slate-300 mb-8 leading-relaxed"
+                >
+                  Stay ahead of the curve with our curated collection of articles on technology,
+                  design, and innovation.
+                </motion.p>
+
+                {/* Stats */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.6 }}
+                  className="flex gap-8 mb-8"
+                >
+                  <div>
+                    <div className="text-3xl font-bold text-slate-900 dark:text-white">
+                      {stats.articles}+
+                    </div>
+                    <div className="text-sm text-slate-600 dark:text-slate-400">Articles</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-slate-900 dark:text-white">
+                      {stats.readers}
+                    </div>
+                    <div className="text-sm text-slate-600 dark:text-slate-400">Readers</div>
+                  </div>
+                  <div>
+                    <div className="text-3xl font-bold text-slate-900 dark:text-white">
+                      {stats.topics}+
+                    </div>
+                    <div className="text-sm text-slate-600 dark:text-slate-400">Topics</div>
+                  </div>
+                </motion.div>
+
+                {/* CTA */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.8 }}
+                >
+                  {!showForm ? (
+                    <Button
+                      onClick={() => setShowForm(true)}
+                      className="gap-2 px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700"
+                    >
+                      <Plus size={20} />
+                      Generate New Article
+                    </Button>
+                  ) : (
+                    <form onSubmit={handleGenerateArticle} className="space-y-4 max-w-md">
                       <input
-                        id="topic"
                         type="text"
                         placeholder="Enter article topic (e.g., 'AI in Healthcare')"
                         value={topic}
                         onChange={(e) => setTopic(e.target.value)}
-                        className="w-full p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full p-4 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                         disabled={generating}
+                        autoFocus
                       />
-                      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => {
-                          setShowForm(false);
-                          setTopic('');
-                          setError(null);
-                        }}
-                        disabled={generating}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={generating || !topic.trim()}
-                      >
-                        {generating ? 'Generating...' : 'Generate Article'}
-                      </Button>
-                    </div>
-                  </div>
-                </form>
+                      {error && <p className="text-red-500 text-sm">{error}</p>}
+                      <div className="flex gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            setShowForm(false);
+                            setTopic("");
+                            setError(null);
+                          }}
+                          disabled={generating}
+                          className="flex-1"
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="submit"
+                          disabled={generating || !topic.trim()}
+                          className="flex-1 bg-gradient-to-r from-indigo-600 to-violet-600"
+                        >
+                          {generating ? "Generating..." : "Generate"}
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                </motion.div>
+              </motion.div>
+
+              {/* Right: Featured Article Preview */}
+              {featuredPost && (
+                <motion.div
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.4 }}
+                  className="hidden lg:block"
+                >
+                  <ArticleCard post={featuredPost} variant="large" />
+                </motion.div>
               )}
             </div>
           </div>
-          {/* Articles Grid */}
+        </section>
+
+        {/* Articles Grid Section */}
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <span className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-500"></span>
-              <span className="ml-4 text-lg text-gray-500 dark:text-gray-300">Loading articles...</span>
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-indigo-500 mb-4" />
+              <span className="text-lg text-slate-500 dark:text-slate-300">Loading articles...</span>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredBlogPosts.length > 0 ? (
-                filteredBlogPosts.map((post) => (
-                  <article
-                    key={post.id}
-                    className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md dark:hover:shadow-lg transition-shadow duration-200 cursor-pointer"
-                  >
-                    {/* Article Header */}
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-                          {post.category}
-                        </span>
-                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                          <Clock className="w-4 h-4 mr-1" />
-                          {post.readTime}
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                        <Link href={`/blog/${post.slug || post.id}`} className="block">
-                          {post.title}
-                        </Link>
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">{post.excerpt}</p>
-                      {/* Comment Count */}
-                      <CommentCount articleId={post.id} />
-                      <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        <ClientFormattedDate dateString={post.publishDate} />
-                      </div>
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <div className="col-span-full text-center text-gray-500 dark:text-gray-400 py-10">
-                  No articles found matching your search.
+          ) : filteredBlogPosts.length > 0 ? (
+            <>
+              {/* Masonry Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-auto">
+                {/* Featured on mobile */}
+                <div className="lg:hidden col-span-full">
+                  {featuredPost && <ArticleCard post={featuredPost} variant="large" index={0} />}
                 </div>
+
+                {/* Medium Cards */}
+                {mediumPosts.map((post, index) => (
+                  <ArticleCard key={post.id} post={post} variant="medium" index={index + 1} />
+                ))}
+
+                {/* Small Cards */}
+                {smallPosts.map((post, index) => (
+                  <ArticleCard
+                    key={post.id}
+                    post={post}
+                    variant="small"
+                    index={index + mediumPosts.length + 1}
+                  />
+                ))}
+              </div>
+
+              {/* Load More */}
+              {filteredBlogPosts.length > 10 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center mt-12"
+                >
+                  <Button variant="outline" size="lg" className="px-8">
+                    Load More Articles
+                  </Button>
+                </motion.div>
               )}
+            </>
+          ) : (
+                  <div className="text-center py-20">
+              <p className="text-slate-500 dark:text-slate-400 text-lg">
+                No articles found matching your search.
+              </p>
             </div>
           )}
-          {/* Load More Button */}
-          {filteredBlogPosts.length < blogPosts.length && (
-            <div className="text-center mt-12">
-              <Button variant="outline" size="lg">
-                Load More Articles
-              </Button>
-            </div>
-          )}
-        </div>
+        </section>
       </main>
+
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-gray-600 dark:text-gray-300">
-            <p>&copy; 2024 TrendWise. All rights reserved.</p>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Made by Asmith Jitendra Mahendrakar</p>
+      <footer className="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 mt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent mb-4">
+              TrendWise
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300 mb-2">
+              &copy; 2025 TrendWise. All rights reserved.
+            </p>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Made by Asmith Jitendra Mahendrakar
+            </p>
           </div>
         </div>
       </footer>
